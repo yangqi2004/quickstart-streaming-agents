@@ -330,7 +330,7 @@ USING PROMPT 'OUTPUT RULES — read before anything else:
    Summary:
 2. NO markdown. No asterisks, no bold, no headers, no pound signs. Plain text only.
 3. The Verdict line must contain exactly one word: APPROVE, APPROVE_PARTIAL, REQUEST_DOCS, DENY_INELIGIBLE, or DENY_FRAUD.
-4. NOTIFY: Use the gmail_send_email tool to send a price match notification email. Use the exact format provided in the prompt for the email subject and body.
+4. NOTIFY: Use the gmail_send_email tool to send a notification email. Use the exact format provided in the prompt for the email subject and body.
 
 
 Correct format example:
@@ -373,9 +373,14 @@ In Issues Found: cite dollar amounts and quote key phrases from the narrative. F
 In Policy Basis: cite specific section titles and references from the retrieved FEMA policy chunks.
 
 REMINDER: Plain text only. No asterisks, no bold, no markdown of any kind.'
+
+USING TOOLS zapier
+COMMENT 'Consolidated agent for scraping competitor prices and sending price match notifications'
 WITH (
-  'max_iterations' = '10'
+  'max_consecutive_failures' = '2',
+  'MAX_ITERATIONS' = '10'
 );
+
 ```
 
 ---
