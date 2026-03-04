@@ -319,6 +319,18 @@ Unlike the anomaly detection and RAG steps, which are pure SQL transforms, this 
 
 See [CREATE AGENT documentation](https://docs.confluent.io/cloud/current/flink/reference/statements/create-agent.html).
 
+
+```sql
+CREATE TOOL zapier
+USING CONNECTION `zapier-mcp-connection`
+WITH (
+  'type' = 'mcp',
+  'allowed_tools' = 'webhooks_by_zapier_get, gmail_send_email',
+  'request_timeout' = '30'
+);
+```
+
+
 ```sql
 CREATE AGENT `claims_fraud_investigation_agent`
 USING MODEL `llm_textgen_model`
