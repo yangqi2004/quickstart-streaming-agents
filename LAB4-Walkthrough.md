@@ -431,7 +431,7 @@ FROM claims_to_investigate_with_policies,
 LATERAL TABLE(AI_RUN_AGENT(
     `claims_fraud_investigation_agent`,
     CONCAT(
-        'EMAIL RECIPIENT: qyang@confluent.io',
+        'EMAIL RECIPIENT: <EMAIL ADDRESS HERE>',
         'EMAIL SUBJECT: Claim Alert!',
         'EMAIL Body Template:
           Subject: Claim Alert  - Claim#', claim_id, '\n',
