@@ -330,6 +330,8 @@ USING PROMPT 'OUTPUT RULES — read before anything else:
    Summary:
 2. NO markdown. No asterisks, no bold, no headers, no pound signs. Plain text only.
 3. The Verdict line must contain exactly one word: APPROVE, APPROVE_PARTIAL, REQUEST_DOCS, DENY_INELIGIBLE, or DENY_FRAUD.
+4. NOTIFY: Use the gmail_send_email tool to send a price match notification email. Use the exact format provided in the prompt for the email subject and body.
+
 
 Correct format example:
 Verdict: DENY_INELIGIBLE
