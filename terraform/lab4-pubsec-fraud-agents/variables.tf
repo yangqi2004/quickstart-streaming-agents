@@ -3,3 +3,9 @@ variable "enable_testing_sql" {
   type        = bool
   default     = false
 }
+
+variable "zapier_token" {
+  description = "Zapier MCP authentication token for tool calling"
+  type        = string
+  sensitive   = true
+}

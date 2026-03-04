@@ -319,3 +319,143 @@ resource "null_resource" "run_datagen" {
     confluent_flink_statement.fema_policies_vectordb_aws,
   ]
 }
+
+
+# Zapier MCP connection for Lab4
+resource "confluent_flink_statement" "zapier_mcp_connection_lab4" {
+  organization {
+    id = data.confluent_organization.main.id
+  }
+  environment {
+    id = data.terraform_remote_state.core.outputs.confluent_environment_id
+  }
+  compute_pool {
+    id = data.terraform_remote_state.core.outputs.confluent_flink_compute_pool_id
+  }
+  principal {
+    id = data.terraform_remote_state.core.outputs.app_manager_service_account_id
+  }
+  rest_endpoint = data.confluent_flink_region.lab4_flink_region.rest_endpoint
+  credentials {
+    key    = data.terraform_remote_state.core.outputs.app_manager_flink_api_key
+    secret = data.terraform_remote_state.core.outputs.app_manager_flink_api_secret
+  }
+
+  statement_name = "zapier-mcp-connection-create-lab4"
+
+  statement = <<-EOT
+    CREATE CONNECTION IF NOT EXISTS `${data.terraform_remote_state.core.outputs.confluent_environment_display_name}`.`${data.terraform_remote_state.core.outputs.confluent_kafka_cluster_display_name}`.`zapier-mcp-connection`
+    WITH (
+      'type' = 'MCP_SERVER',
+      'endpoint' = 'https://mcp.zapier.com/api/v1/connect',
+      'token' = '${var.zapier_token}',
+      'transport-type' = 'STREAMABLE_HTTP'
+    );
+  EOT
+
+  properties = {
+    "sql.current-catalog"  = data.terraform_remote_state.core.outputs.confluent_environment_display_name
+    "sql.current-database" = data.terraform_remote_state.core.outputs.confluent_kafka_cluster_display_name
+  }
+
+  lifecycle {
+    ignore_changes = [statement]
+  }
+
+  depends_on = [
+    data.terraform_remote_state.core
+  ]
+}
+
+# Zapier MCP model for Lab4 (AWS/Bedrock)
+resource "confluent_flink_statement" "zapier_mcp_model_lab4_aws" {
+  count = local.cloud_provider == "aws" ? 1 : 0
+
+  organization {
+    id = data.confluent_organization.main.id
+  }
+  environment {
+    id = data.terraform_remote_state.core.outputs.confluent_environment_id
+  }
+  compute_pool {
+    id = data.terraform_remote_state.core.outputs.confluent_flink_compute_pool_id
+  }
+  principal {
+    id = data.terraform_remote_state.core.outputs.app_manager_service_account_id
+  }
+  rest_endpoint = data.confluent_flink_region.lab4_flink_region.rest_endpoint
+  credentials {
+    key    = data.terraform_remote_state.core.outputs.app_manager_flink_api_key
+    secret = data.terraform_remote_state.core.outputs.app_manager_flink_api_secret
+  }
+
+  statement_name = "zapier-mcp-model-create-lab4"
+
+  statement = <<-EOT
+    CREATE MODEL IF NOT EXISTS `${data.terraform_remote_state.core.outputs.confluent_environment_display_name}`.`${data.terraform_remote_state.core.outputs.confluent_kafka_cluster_display_name}`.`zapier_mcp_model`
+    INPUT (prompt STRING)
+    OUTPUT (response STRING)
+    WITH (
+      'provider' = 'bedrock',
+      'task' = 'text_generation',
+      'bedrock.connection' = '${data.terraform_remote_state.core.outputs.llm_connection_name}',
+      'bedrock.params.max_tokens' = '50000',
+      'mcp.connection' = 'zapier-mcp-connection'
+    );
+  EOT
+
+  properties = {
+    "sql.current-catalog"  = data.terraform_remote_state.core.outputs.confluent_environment_display_name
+    "sql.current-database" = "default"
+  }
+
+  depends_on = [
+    confluent_flink_statement.zapier_mcp_connection_lab4
+  ]
+}
+
+# Zapier MCP model for Lab4 (Azure/OpenAI)
+resource "confluent_flink_statement" "zapier_mcp_model_lab4_azure" {
+  count = local.cloud_provider == "azure" ? 1 : 0
+
+  organization {
+    id = data.confluent_organization.main.id
+  }
+  environment {
+    id = data.terraform_remote_state.core.outputs.confluent_environment_id
+  }
+  compute_pool {
+    id = data.terraform_remote_state.core.outputs.confluent_flink_compute_pool_id
+  }
+  principal {
+    id = data.terraform_remote_state.core.outputs.app_manager_service_account_id
+  }
+  rest_endpoint = data.confluent_flink_region.lab4_flink_region.rest_endpoint
+  credentials {
+    key    = data.terraform_remote_state.core.outputs.app_manager_flink_api_key
+    secret = data.terraform_remote_state.core.outputs.app_manager_flink_api_secret
+  }
+
+  statement_name = "zapier-mcp-model-create-lab4"
+
+  statement = <<-EOT
+    CREATE MODEL IF NOT EXISTS `${data.terraform_remote_state.core.outputs.confluent_environment_display_name}`.`${data.terraform_remote_state.core.outputs.confluent_kafka_cluster_display_name}`.`zapier_mcp_model`
+    INPUT (prompt STRING)
+    OUTPUT (response STRING)
+    WITH (
+      'provider' = 'azureopenai',
+      'task' = 'text_generation',
+      'azureopenai.connection' = '${data.terraform_remote_state.core.outputs.llm_connection_name}',
+      'mcp.connection' = 'zapier-mcp-connection'
+    );
+  EOT
+
+  properties = {
+    "sql.current-catalog"  = data.terraform_remote_state.core.outputs.confluent_environment_display_name
+    "sql.current-database" = "default"
+  }
+
+  depends_on = [
+    confluent_flink_statement.zapier_mcp_connection_lab4
+  ]
+}
